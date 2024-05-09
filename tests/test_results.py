@@ -42,20 +42,20 @@ def x_end() -> float:
 
 
 @pytest.fixture
-def n_feval() -> int:
+def n_interval() -> int:
     '''
-    number of function evaluations
+    number of numerical integration intervals
     '''
     return random.randint(50, 150) * 2
 
 
 @pytest.fixture
-def x_array(x_begin, x_end, n_feval) -> np.array:
-    return np.linspace(x_begin, x_end, n_feval)
+def x_array(x_begin, x_end, n_interval) -> np.array:
+    return np.linspace(x_begin, x_end, (n_interval + 1))
 
 
 @pytest.fixture
-def f_array(x_array:np.ndarray) -> np.array:
+def f_array(x_array:np.array) -> np.array:
     return np.exp(-1.0 * (x_array ** 2))
 
 
@@ -94,14 +94,19 @@ def division(method_number:np.ndarray, delta_x:float) -> float:
 
 
 @pytest.fixture
-def result_dict(int_method:METHOD, x_begin:float, x_end:float, n_feval:int) -> RESULT:
-    return int_method(x_begin, x_end, n_feval)
+def result_dict(int_method:METHOD, x_begin:float, x_end:float, n_interval:int) -> RESULT:
+    return int_method(x_begin, x_end, n_interval)
 
 
-def test_result_type(result_dict:RESULT, int_cos_name:str):
+@pytest.fixture
+def int_function_name(method_number:str) -> str:
+    return f"gauss_int_{method_number}()"
+
+
+def test_result_type(result_dict:RESULT, int_function_name:str):
     assert isinstance(result_dict, dict), (
-        f"{int_cos_name} returned result is not a `dict`\n"
-        f"{int_cos_name} 반환 결과가 `dict`가 아님\n"
+        f"{int_function_name} returned result is not a `dict`\n"
+        f"{int_function_name} 반환 결과가 `dict`가 아님\n"
         f"{result_dict}"
     )
 
@@ -119,17 +124,12 @@ def dict_value_type(dict_key_prefix) -> type:
     }[dict_key_prefix]
 
 
-@pytest.fixture
-def int_cos_name(method_number:str) -> str:
-    return f"int_cos_{method_number}()"
-
-
-def test_result_has_key(result_dict:RESULT, dict_key_prefix:str, method_number:str, int_cos_name:str):
+def test_result_has_key(result_dict:RESULT, dict_key_prefix:str, method_number:str, int_function_name:str):
     dict_key = '_'.join((dict_key_prefix, method_number))
 
     assert dict_key in result_dict, (
-        f"{int_cos_name} returned result without `{dict_key}`\n"
-        f"{int_cos_name} 반환값에 `{dict_key}`가 없음\n"
+        f"{int_function_name} returned result without `{dict_key}`\n"
+        f"{int_function_name} 반환값에 `{dict_key}`가 없음\n"
         f"{result_dict}"
     )
 
@@ -144,120 +144,9 @@ def result_area(result_dict:RESULT, method_number:str) -> float:
     return result_dict[f'area_{method_number}']
 
 
-def test_a_array_type(result_a_array:np.ndarray, method_number:str, int_cos_name:str):
-    dict_key = '_'.join(('a_array', method_number))
-
-    assert isinstance(result_a_array, np.ndarray,), (
-        f"{int_cos_name} returned result '{dict_key}' is not an instance of `np.ndarray`\n"
-        f"{int_cos_name} 반환 결과 '{dict_key}' 가 `np.ndarray`가 아님\n"
-        f"{result_a_array}"
-    )
-
-
-def test_a_array_dim(result_a_array:np.ndarray, method_number:str, n_feval:int, int_cos_name:str):
-    dict_key = '_'.join(('a_array', method_number))
-
-    if method_number in '01':
-        expected_len = n_feval
-    elif method_number == '2':
-        expected_len = n_feval // 2
-    else:
-        raise NotImplementedError
-
-    msg = (
-        f"{int_cos_name} returned result '{dict_key}' has {len(result_a_array)} areas. expected {expected_len}\n"
-        f"{int_cos_name} 반환 결과 '{dict_key}' 에 {len(result_a_array)} 개의 넓이가 저장됨. 예상 갯수 {expected_len}\n"
-        f"{result_a_array}"
-    )
-
-    assert len(result_a_array) == (expected_len), msg
-
-
-def test_area_type(result_area:float, method_number:str, int_cos_name:str):
-    dict_key = '_'.join(('area', method_number))
-
-    assert isinstance(result_area, float), (
-        f"{int_cos_name} returned result '{dict_key}' is not an instance of `float`\n"
-        f"{int_cos_name} 반환 결과 '{dict_key}'가 `float`가 아님\n"
-        f"{result_area}"
-    )
-
-
-def test_a_array_value(int_cos_name:str, result_a_array:np.ndarray, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_feval:int):
-    q = result_a_array * division
-
-    nt.assert_allclose(
-        actual=q, desired=c_array,
-        err_msg=(
-            f'{int_cos_name} : please verify the area of at each coordinate\n'
-            f'{int_cos_name} : 각각의 좌표값에서 넓이 계산을 확인 바랍니다\n'
-            f'({x_begin_0} deg ~ {x_end_0} deg, {n_feval} areas)'
-        )
-    )
-
-
-def test_area_value(int_cos_name:str, result_area:float, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_feval:int):
-    q = result_area * division
-    expected_q = np.sum(c_array)
-
-    assert math.isclose(q, expected_q), (
-        f"{int_cos_name} : please verify numerical integration result\n"
-        f"{int_cos_name} : 적분 결과를 확인 바랍니다\n"
-        f"({x_begin_0} deg ~ {x_end_0} deg, {n_feval} areas) result = {result_area}"
-    )
-
-
 @pytest.fixture
-def expected_exact_int(x_begin:float, x_end:float) -> float:
-    return np.sin(x_end) - np.sin(x_begin)
-
-
-@pytest.fixture
-def epsilon() -> float:
-    return 1e-5
-
-
-@pytest.fixture
-def result_compare_int_cos(x_begin:float, x_end:float, n_feval:int, epsilon:float) -> RESULT:
-    return numerical_integration.compare_int_cos(x_begin, x_end, n_feval, epsilon)
-
-
-def test_compare_int_cos_type(result_compare_int_cos:RESULT):
-    assert isinstance(result_compare_int_cos, dict), (
-        "compare_int_cos() returned result is not a `dict`\n"
-        "compare_int_cos() 가 반환값이 `dict`가 아님\n"
-        f"{result_compare_int_cos}"
-    )
-
-    assert 'area_exact' in result_compare_int_cos, (
-        "compare_int_cos() returned result without `area_exact`\n"
-        "compare_int_cos() 반환값에 `area_exact`가 없음\n"
-        f"{result_compare_int_cos}"
-    )
-
-
-def test_compare_int_cos_has_area(result_compare_int_cos:RESULT, area_key:str):
-    assert area_key in result_compare_int_cos, (
-        f"compare_int_cos() returned result without {area_key}\n"
-        f"compare_int_cos() 반환값에 `{area_key}`가 없음\n"
-        f"{result_compare_int_cos}"
-    )
-
-
-def test_compare_int_cos_has_diff(result_compare_int_cos:RESULT, diff_key:str):
-    assert diff_key in result_compare_int_cos, (
-        f"compare_int_cos() returned result without `{diff_key}`\n"
-        f"compare_int_cos() 반환값에 `{diff_key}`가 없음\n"
-        f"{result_compare_int_cos}"
-    )
-
-
-def test_compare_int_cos_has_is_close(result_compare_int_cos:RESULT, is_close_key:str):
-    assert is_close_key in result_compare_int_cos, (
-        f"compare_int_cos() returned result without `{is_close_key}`\n"
-        f"compare_int_cos() 반환값에 `{is_close_key}`가 없음\n"
-        f"{result_compare_int_cos}"
-    )
+def a_array_key(method_number:str) -> str:
+    return 'a_array_' + method_number
 
 
 @pytest.fixture
@@ -265,105 +154,67 @@ def area_key(method_number:str) -> str:
     return 'area_' + method_number
 
 
-@pytest.fixture
-def result_compare_numint(result_compare_int_cos:RESULT, area_key:str) -> float:
-    return result_compare_int_cos[area_key]
-
-
-def test_compare_int_cos__numint_type(result_compare_numint:float, area_key:str):
-    assert isinstance(result_compare_numint, float), (
-        f"compare_int_cos() returned result '{area_key}' ({result_compare_numint}) is not an instance of `float`\n"
-        f"compare_int_cos() 반환 결과 '{area_key}' ({result_compare_numint}) 가 `float`가 아님"
-    )
-
-
-def test_compare_int_cos__numint(result_compare_numint:float, result_area:float, method_number:str, area_key:str):
-    assert result_compare_numint == result_area, (
-        f"'{area_key}' of compare_int_cos() ({result_compare_numint}) is not same as int_cos_{method_number}() ({result_area}) \n"
-        f"compare_int_cos() 가 반환된 결과 'area_exact' ({result_compare_numint}) 가 int_cos_{method_number}() 반환 결과 ({result_area}) 와 다름"
-    )
-
-
-def test_compare_int_cos_area_exact(x_begin_0:int, x_end_0:int, result_area_exact:float, expected_exact_int:float):
-    assert math.isclose(result_area_exact, expected_exact_int), (
-        f"compare_int_cos() : please verify exact integration result ({x_begin_0:d}deg~{x_end_0:d}deg returned : {result_area_exact:f}, expected : {expected_exact_int:f})\n"
-        f"compare_int_cos() : 정적분 이론값 확인 바랍니다  ({x_begin_0:d}deg~{x_end_0:d}deg 반환값 : {result_area_exact:f}, 예상값 : {expected_exact_int:f})"
+def test_a_array_type(result_a_array:np.ndarray, int_function_name:str, a_array_key:str):
+    assert isinstance(result_a_array, np.ndarray,), (
+        f"{int_function_name} returned result '{a_array_key}' is not an instance of `np.ndarray`\n"
+        f"{int_function_name} 반환 결과 '{a_array_key}' 가 `np.ndarray`가 아님\n"
+        f"{result_a_array}"
     )
 
 
 @pytest.fixture
-def result_area_exact(result_compare_int_cos:RESULT) -> float:
-    return result_compare_int_cos['area_exact']
+def expected_number_of_areas(method_number:str, n_interval:int) -> int:
+    '''
+    expected number of areas of numerical integration
+    '''
+    if method_number in '01':
+        expected_len = (n_interval)
+    elif method_number == '2':
+        assert n_interval % 2 == 0
+        expected_len = (n_interval // 2)
+    else:
+        raise NotImplementedError
+
+    return expected_len
 
 
-def test_compare_int_cos_area_exact_type(result_area_exact:float):
-    assert isinstance(result_area_exact, float), (
-        f"compare_int_cos()  returned result 'area_exact' ({result_area_exact}) is not an instance of `float`\n"
-        f"compare_int_cos()  반환 결과 'area_exact' ({result_area_exact}) 가 `float`가 아님"
+def test_a_array_dim(result_a_array:np.ndarray, expected_number_of_areas:int, int_function_name:str, a_array_key:str):
+    assert len(result_a_array) == (expected_number_of_areas), (
+        f"{int_function_name} returned result '{a_array_key}' has {len(result_a_array)} areas. expected {expected_number_of_areas}\n"
+        f"{int_function_name} 반환 결과 '{a_array_key}' 에 {len(result_a_array)} 개의 넓이가 저장됨. 예상 갯수 {expected_number_of_areas}\n"
+        f"{result_a_array}"
     )
 
 
-@pytest.fixture
-def diff_key(method_number:str) -> str:
-    return 'diff_' + method_number
-
-
-@pytest.fixture
-def result_diff(result_compare_int_cos:RESULT, diff_key:str) -> float:
-    return result_compare_int_cos[diff_key]
-
-
-def test_result_diff_type(result_diff:float, result_area_exact:float, diff_key:str):
-    assert isinstance(result_diff, float), f"returned result '{diff_key}' is not an instance of `float`\n반환된 결과 '{diff_key}'가 `float`가 아님"
-
-    assert result_diff >= 0, (
-        f"returned result '{diff_key}' {result_diff} is supposed to be an absolute value.\n"
-        f"반환된 결과 ' {result_area_exact} = {diff_key}' {result_diff} 는 절대값이어야 함."
+def test_area_type(result_area:float, int_function_name:str, area_key:str):
+    assert isinstance(result_area, float), (
+        f"{int_function_name} returned result '{area_key}' is not an instance of `float`\n"
+        f"{int_function_name} 반환 결과 '{area_key}'가 `float`가 아님\n"
+        f"{result_area}"
     )
 
 
-@pytest.fixture
-def is_close_key(method_number:str) -> str:
-    return 'is_close_' + method_number
+def test_a_array_value(int_function_name:str, result_a_array:np.ndarray, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_interval:int):
+    q = result_a_array * division
 
-
-@pytest.fixture
-def result_is_close(result_compare_int_cos:RESULT, is_close_key:str) -> bool:
-    return result_compare_int_cos[is_close_key]
-
-
-def test_result_is_close_type(result_is_close:bool):
-    assert isinstance(result_is_close, (np.bool_, bool)), (
-        f"returned result 'is_close_0' ({result_is_close}) is not an instance of `bool` ({type(result_is_close)}).\n"
-        f"반환된 결과 'is_close_0' ({result_is_close})가 `bool`가 아님 ({type(result_is_close)})."
+    nt.assert_allclose(
+        actual=q, desired=c_array,
+        err_msg=(
+            f'{int_function_name} : please verify the area of at each coordinate\n'
+            f'{int_function_name} : 각각의 좌표값에서 넓이 계산을 확인 바랍니다\n'
+            f'({x_begin_0} deg ~ {x_end_0} deg, {n_interval} points)'
+        )
     )
 
 
-def test_compare_int_cos_diff(
-        result_diff:float,
-        expected_exact_int:float,
-        c_array:np.array,
-        division:float,
-        diff_key:str,
-        result_compare_numint:float,
-        result_area_exact:float,
-    ):
+def test_area_value(int_function_name:str, result_area:float, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_interval:int):
+    q = result_area * division
+    expected_q = np.sum(c_array)
 
-    expected_diff = abs(expected_exact_int - (c_array.sum() / division))
-
-    assert math.isclose(result_diff, expected_diff, rel_tol=1e-4), (
-        f"please verify `{diff_key}` (result : {result_diff}, expected : {expected_diff}).\n"
-        f"`{diff_key}` 값을 확인 바람. (반환된 값 : abs({result_compare_numint} - {result_area_exact})  = {result_diff}, 예상된 값 : abs({(c_array.sum() / division)} - {expected_exact_int})= {expected_diff})"
-    )
-
-
-def test_compare_int_cos_is_close(
-        epsilon:float, result_diff:float, result_is_close:bool, is_close_key:str):
-    b_is_close = (result_diff < epsilon)
-    assert result_is_close == b_is_close, (
-        "please verify the comparison result\n"
-        "비교 결과를 확인 바랍니다\n"
-        f"{result_diff} < {epsilon} ?"
+    assert math.isclose(q, expected_q), (
+        f"{int_function_name} : please verify numerical integration result\n"
+        f"{int_function_name} : 적분 결과를 확인 바랍니다\n"
+        f"({x_begin_0} deg ~ {x_end_0} deg, {n_interval} points) result = {result_area}"
     )
 
 
