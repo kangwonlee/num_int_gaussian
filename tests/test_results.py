@@ -194,7 +194,10 @@ def test_area_type(result_area:float, int_function_name:str, area_key:str):
     )
 
 
-def test_a_array_value(int_function_name:str, result_a_array:np.ndarray, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_interval:int):
+def test_a_array_value(
+        int_function_name:str, result_a_array:np.ndarray, c_array:np.array, division:float,
+        x_begin:float, x_end:float, n_interval:int
+    ):
     q = result_a_array * division
 
     nt.assert_allclose(
@@ -202,19 +205,22 @@ def test_a_array_value(int_function_name:str, result_a_array:np.ndarray, c_array
         err_msg=(
             f'{int_function_name} : please verify the area of at each coordinate\n'
             f'{int_function_name} : 각각의 좌표값에서 넓이 계산을 확인 바랍니다\n'
-            f'({x_begin_0} deg ~ {x_end_0} deg, {n_interval} points)'
+            f'({x_begin} ~ {x_end}, {n_interval} intervals)'
         )
     )
 
 
-def test_area_value(int_function_name:str, result_area:float, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_interval:int):
+def test_area_value(
+        int_function_name:str, result_area:float, c_array:np.array, division:float,
+        x_begin:float, x_end:float, n_interval:int
+    ):
     q = result_area * division
     expected_q = np.sum(c_array)
 
     assert math.isclose(q, expected_q), (
         f"{int_function_name} : please verify numerical integration result\n"
         f"{int_function_name} : 적분 결과를 확인 바랍니다\n"
-        f"({x_begin_0} deg ~ {x_end_0} deg, {n_interval} points) result = {result_area}"
+        f"({x_begin} ~ {x_end}, {n_interval} intervals) result = {result_area}"
     )
 
 
