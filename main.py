@@ -9,7 +9,7 @@ def int_cos_1(
 
 
 
-def int_cos_2(
+def gauss_int_2(
 
 
 

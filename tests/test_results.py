@@ -93,7 +93,7 @@ def delta_x_rad(x_rad_array2:np.ndarray) -> float:
     return x_rad_array2[1] - x_rad_array2[0]
 
 
-@pytest.fixture(params=[main.int_cos_0, main.int_cos_1, main.int_cos_2])
+@pytest.fixture(params=[main.int_cos_0, main.int_cos_1, main.gauss_int_2])
 def int_method(request):
     return request.param
 
