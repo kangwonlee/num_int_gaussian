@@ -11,6 +11,12 @@ $$
 \int_{a}^{b} e^{-x^2} dx
 $$
 
+* However it is known that the following definite integral has a finite value.<br>하지만 다음의 정적분은 유한한 값을 가진다.
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx=\sqrt{\pi}
+$$
+
 * Using numerical integration, please calculate the Gaussian Integral over a specified range.<br>수치 적분을 사용하여 주어진 구간에서 가우스 적분을 계산하시오.
 
 ## Implementation<br>구현
