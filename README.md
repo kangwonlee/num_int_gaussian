@@ -58,7 +58,7 @@ $$
 
 ```python
 x_begin = 0.0
-x_end = 1000.0
+x_end = 10.0
 n = 100
 
 print(
