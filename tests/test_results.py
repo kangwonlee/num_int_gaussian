@@ -25,58 +25,38 @@ proj_folder = test_folder.parent.absolute()
 sys.path.insert(0, str(proj_folder))
 
 
-import main
+import numerical_integration
 
 
 random.seed()
 
 
 @pytest.fixture
-def x1_deg() -> float:
-    return random.randint(0, 90)
+def x_begin() -> float:
+    return random.uniform(1e-7, 1e-5)
 
 
 @pytest.fixture
-def x2_deg() -> float:
-    return random.randint(270, 360)
+def x_end() -> float:
+    return random.randint(1, 9) * (10.0 ** random.randint(1, 3))
 
 
 @pytest.fixture
-def x1_rad(x1_deg:int) -> float:
-    return math.radians(x1_deg)
+def n_feval() -> int:
+    '''
+    number of function evaluations
+    '''
+    return random.randint(50, 150) * 2
 
 
 @pytest.fixture
-def x2_rad(x2_deg:int) -> float:
-    return math.radians(x2_deg)
+def x_array(x_begin, x_end, n_feval) -> np.array:
+    return np.linspace(x_begin, x_end, n_feval)
 
 
 @pytest.fixture
-def n_rect(x1_deg:int, x2_deg:int) -> int:
-    n = x2_deg - x1_deg
-    result = random.randint(n//2, 2*n)
-    result += (result % 2)
-    return result
-
-
-@pytest.fixture
-def x_deg_array2(x1_deg:int, x2_deg:int, n_rect:int) -> np.ndarray:
-    return np.linspace(x1_deg, x2_deg, (n_rect+1))
-
-
-@pytest.fixture
-def x_deg_array(x_deg_array2) -> np.ndarray:
-    return x_deg_array2[:-1]
-
-
-@pytest.fixture
-def x_rad_array2(x_deg_array2:np.ndarray) -> np.ndarray:
-    return np.deg2rad(x_deg_array2)
-
-
-@pytest.fixture
-def f_array(x_rad_array2:np.ndarray) -> np.ndarray:
-    return np.cos(x_rad_array2)
+def f_array(x_array:np.ndarray) -> np.array:
+    return np.exp(-1.0 * (x_array ** 2))
 
 
 @pytest.fixture
@@ -89,11 +69,11 @@ def c_table(f_array:np.ndarray) -> TABLE:
 
 
 @pytest.fixture
-def delta_x_rad(x_rad_array2:np.ndarray) -> float:
-    return x_rad_array2[1] - x_rad_array2[0]
+def delta_x(x_array:np.ndarray) -> float:
+    return x_array[1] - x_array[0]
 
 
-@pytest.fixture(params=[main.int_cos_0, main.int_cos_1, main.gauss_int_2])
+@pytest.fixture(params=[numerical_integration.gauss_int_2])
 def int_method(request):
     return request.param
 
@@ -109,13 +89,13 @@ def c_array(c_table:TABLE, method_number:str) -> np.array:
 
 
 @pytest.fixture
-def division(method_number:np.ndarray, delta_x_rad:float) -> float:
-    return (int(method_number) + 1) / delta_x_rad
+def division(method_number:np.ndarray, delta_x:float) -> float:
+    return (int(method_number) + 1) / delta_x
 
 
 @pytest.fixture
-def result_dict(int_method:METHOD, x1_rad:float, x2_rad:float, n_rect:int) -> RESULT:
-    return int_method(x1_rad, x2_rad, n_rect)
+def result_dict(int_method:METHOD, x_begin:float, x_end:float, n_feval:int) -> RESULT:
+    return int_method(x_begin, x_end, n_feval)
 
 
 def test_result_type(result_dict:RESULT, int_cos_name:str):
@@ -174,13 +154,13 @@ def test_a_array_type(result_a_array:np.ndarray, method_number:str, int_cos_name
     )
 
 
-def test_a_array_dim(result_a_array:np.ndarray, method_number:str, n_rect:int, int_cos_name:str):
+def test_a_array_dim(result_a_array:np.ndarray, method_number:str, n_feval:int, int_cos_name:str):
     dict_key = '_'.join(('a_array', method_number))
 
     if method_number in '01':
-        expected_len = n_rect
+        expected_len = n_feval
     elif method_number == '2':
-        expected_len = n_rect // 2
+        expected_len = n_feval // 2
     else:
         raise NotImplementedError
 
@@ -203,7 +183,7 @@ def test_area_type(result_area:float, method_number:str, int_cos_name:str):
     )
 
 
-def test_a_array_value(int_cos_name:str, result_a_array:np.ndarray, c_array:np.array, division:float, x1_deg:int, x2_deg:int, n_rect:int):
+def test_a_array_value(int_cos_name:str, result_a_array:np.ndarray, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_feval:int):
     q = result_a_array * division
 
     nt.assert_allclose(
@@ -211,25 +191,25 @@ def test_a_array_value(int_cos_name:str, result_a_array:np.ndarray, c_array:np.a
         err_msg=(
             f'{int_cos_name} : please verify the area of at each coordinate\n'
             f'{int_cos_name} : 각각의 좌표값에서 넓이 계산을 확인 바랍니다\n'
-            f'({x1_deg} deg ~ {x2_deg} deg, {n_rect} areas)'
+            f'({x_begin_0} deg ~ {x_end_0} deg, {n_feval} areas)'
         )
     )
 
 
-def test_area_value(int_cos_name:str, result_area:float, c_array:np.array, division:float, x1_deg:int, x2_deg:int, n_rect:int):
+def test_area_value(int_cos_name:str, result_area:float, c_array:np.array, division:float, x_begin_0:int, x_end_0:int, n_feval:int):
     q = result_area * division
     expected_q = np.sum(c_array)
 
     assert math.isclose(q, expected_q), (
         f"{int_cos_name} : please verify numerical integration result\n"
         f"{int_cos_name} : 적분 결과를 확인 바랍니다\n"
-        f"({x1_deg} deg ~ {x2_deg} deg, {n_rect} areas) result = {result_area}"
+        f"({x_begin_0} deg ~ {x_end_0} deg, {n_feval} areas) result = {result_area}"
     )
 
 
 @pytest.fixture
-def expected_exact_int(x1_rad:float, x2_rad:float) -> float:
-    return np.sin(x2_rad) - np.sin(x1_rad)
+def expected_exact_int(x_begin:float, x_end:float) -> float:
+    return np.sin(x_end) - np.sin(x_begin)
 
 
 @pytest.fixture
@@ -238,8 +218,8 @@ def epsilon() -> float:
 
 
 @pytest.fixture
-def result_compare_int_cos(x1_rad:float, x2_rad:float, n_rect:int, epsilon:float) -> RESULT:
-    return main.compare_int_cos(x1_rad, x2_rad, n_rect, epsilon)
+def result_compare_int_cos(x_begin:float, x_end:float, n_feval:int, epsilon:float) -> RESULT:
+    return numerical_integration.compare_int_cos(x_begin, x_end, n_feval, epsilon)
 
 
 def test_compare_int_cos_type(result_compare_int_cos:RESULT):
@@ -304,10 +284,10 @@ def test_compare_int_cos__numint(result_compare_numint:float, result_area:float,
     )
 
 
-def test_compare_int_cos_area_exact(x1_deg:int, x2_deg:int, result_area_exact:float, expected_exact_int:float):
+def test_compare_int_cos_area_exact(x_begin_0:int, x_end_0:int, result_area_exact:float, expected_exact_int:float):
     assert math.isclose(result_area_exact, expected_exact_int), (
-        f"compare_int_cos() : please verify exact integration result ({x1_deg:d}deg~{x2_deg:d}deg returned : {result_area_exact:f}, expected : {expected_exact_int:f})\n"
-        f"compare_int_cos() : 정적분 이론값 확인 바랍니다  ({x1_deg:d}deg~{x2_deg:d}deg 반환값 : {result_area_exact:f}, 예상값 : {expected_exact_int:f})"
+        f"compare_int_cos() : please verify exact integration result ({x_begin_0:d}deg~{x_end_0:d}deg returned : {result_area_exact:f}, expected : {expected_exact_int:f})\n"
+        f"compare_int_cos() : 정적분 이론값 확인 바랍니다  ({x_begin_0:d}deg~{x_end_0:d}deg 반환값 : {result_area_exact:f}, 예상값 : {expected_exact_int:f})"
     )
 
 
