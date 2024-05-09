@@ -1,7 +1,7 @@
 
 # The Gaussian Integral<br>가우스 적분
 
-* This repository contains the template code and instructions for your numerical integration assignment. You will implement numerical integration techniques to approximate the value of the Gaussian integral.<br>이 저장소는 수치 적분 과제의 시작 코드와 안내사항을 담고 있음. 해당 과제는 가우스 적분을 수치적으로 추정하는 함수를 구현할 것임.
+* This repository contains the template code and instructions for your numerical integration assignment. You will implement numerical integration techniques to approximate the value of the Gaussian integral [[1](https://en.wikipedia.org/wiki/Gaussian_integral)].<br>이 저장소는 수치 적분 과제의 시작 코드와 안내사항을 담고 있음. 해당 과제는 가우스 적분[[1](https://en.wikipedia.org/wiki/Gaussian_integral)]을 수치적으로 추정하는 함수를 구현할 것임.
 
 ## Description<br>설명
 
