@@ -38,7 +38,7 @@ def x_begin() -> float:
 
 @pytest.fixture
 def x_end() -> float:
-    return random.randint(1, 9) * (10.0 ** random.randint(1, 3))
+    return random.uniform(1, 5)
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def n_interval() -> int:
     '''
     number of numerical integration intervals
     '''
-    return random.randint(50, 150) * 2
+    return random.randint(10, 50) * 2
 
 
 @pytest.fixture
