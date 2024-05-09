@@ -11,7 +11,7 @@ def sample_main():
     x_begin = 0
     x_end_array = np.logspace(3, 6)
 
-    n = random.randint(100, 300)
+    n = random.randint(100, 150) * 2
 
     area_list = []
 
@@ -27,6 +27,7 @@ def sample_main():
     plt.xlabel('integration range end point')
     plt.ylabel('((Gaussisan integral) * 2) ** 2')
     plt.grid(True)
+    plt.savefig('sample.png')
 
 
 if "__main__" == __name__:
