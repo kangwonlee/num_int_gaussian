@@ -2,17 +2,16 @@
 # The Gaussian Integral<br>가우스 적분
 
 * This repository contains the template code and instructions for your numerical integration assignment. You will implement numerical integration techniques to approximate the value of the Gaussian integral [[1](https://en.wikipedia.org/wiki/Gaussian_integral)].<br>이 저장소는 수치 적분 과제의 시작 코드와 안내사항을 담고 있음. 해당 과제는 가우스 적분[[1](https://en.wikipedia.org/wiki/Gaussian_integral)]을 수치적으로 추정하는 함수를 구현할 것임.
+* The Gaussian Integral is different from the **Gaussian Quadrature**.<br>가우스 적분은 **가우스 구적법**과는 다름.
 
 ## Description<br>설명
 
 * The Gaussian integral has no closed-form solution in terms of elementary functions.<br>해당 가우스 적분은 사칙연산과 지수 로그 함수로는 닫힌 형태의 해가 없음.
-
 $$
 \int_{a}^{b} e^{-x^2} dx
 $$
 
-* However it is known that the following definite integral has a finite value.<br>하지만 다음의 정적분은 유한한 값을 가진다.
-
+* However it is known that the following definite integral has a finite value.<br>하지만 다음의 정적분은 유한한 값을 가지는 것이 알려져 있음.
 $$
 \int_{-\infty}^{\infty} e^{-x^2} dx=\sqrt{\pi}
 $$
